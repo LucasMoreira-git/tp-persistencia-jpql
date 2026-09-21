@@ -1,47 +1,38 @@
 package ar.edu.practica.jpa;
 
-import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "usuarios")
-public class Usuario extends Base {
+public class Usuario extends EntityId {
+
+    @Column(nullable = false)
+    private String usuario;
+
+    @Column(nullable = false)
+    private String clave;
+
+    @Column(nullable = false)
     private String nombre;
+
+    @Column(nullable = false)
     private String apellido;
-    private String mail;
-    private String celular;
-    private String contrasena;
 
-    @Enumerated(EnumType.STRING)
-    private Rol rol;
-
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Pedido> pedidos = new ArrayList<>();
-
-    public Usuario(String nombre, String apellido, String mail, String celular, String contrasena, Rol rol) {
+    public Usuario(String usuario, String clave, String nombre, String apellido, Long id) {
+        super(id);
+        this.usuario = usuario;
+        this.clave = clave;
         this.nombre = nombre;
         this.apellido = apellido;
-        this.mail = mail;
-        this.celular = celular;
-        this.contrasena = contrasena;
-        this.rol = rol;
-    }
-
-    public void agregarPedido(Pedido pedido) {
-        pedidos.add(pedido);
-        pedido.setUsuario(this);
     }
 }

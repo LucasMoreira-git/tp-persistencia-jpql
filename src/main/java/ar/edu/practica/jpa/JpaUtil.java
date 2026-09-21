@@ -5,7 +5,7 @@ import jakarta.persistence.Persistence;
 
 public final class JpaUtil {
     private static final EntityManagerFactory ENTITY_MANAGER_FACTORY =
-            Persistence.createEntityManagerFactory("miUnidad");
+            Persistence.createEntityManagerFactory("FacturacionPU");
 
     private JpaUtil() {
     }
@@ -15,7 +15,7 @@ public final class JpaUtil {
     }
 
     public static void cerrar() {
-        if (ENTITY_MANAGER_FACTORY.isOpen()) {
+        if (ENTITY_MANAGER_FACTORY != null && ENTITY_MANAGER_FACTORY.isOpen()) {
             ENTITY_MANAGER_FACTORY.close();
         }
     }
