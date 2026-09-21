@@ -8,8 +8,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,7 +37,7 @@ class FacturaVentaPersistenceTest {
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
 
-        Usuario admin = new Usuario("admin", "1234", "Admin", "General");
+        Usuario admin = new Usuario("admin_cascade", "1234", "Admin", "General");
         em.persist(admin);
 
         CondicionIva condicionIva = new CondicionIva(1, "Responsable Inscripto");
@@ -122,5 +125,47 @@ class FacturaVentaPersistenceTest {
 
         em.close();
     }
-}
 
+    @Test
+    void testConsultasJpqlFacturacionService() {
+        EntityManager em = emf.createEntityManager();
+        FacturacionService service = new FacturacionService(em);
+
+        // Poblar datos de prueba mediante el servicio
+        service.poblarDatosPruebaSiEsNecesario();
+
+        // 1. Búsquedas por atributos únicos
+        Optional<Usuario> usuarioOpt = service.buscarUsuarioPorNombreUsuario("admin");
+        assertTrue(usuarioOpt.isPresent(), "Debe encontrar el usuario 'admin'");
+        assertEquals("Lucas", usuarioOpt.get().getNombre());
+
+        Optional<Usuario> inexistente = service.buscarUsuarioPorNombreUsuario("no_existe_usuario");
+        assertFalse(inexistente.isPresent());
+
+        Optional<Cliente> clienteOpt = service.buscarClientePorCuit("30-71234567-9");
+        assertTrue(clienteOpt.isPresent(), "Debe encontrar el cliente por CUIT");
+        assertEquals("Tech Corp S.A.", clienteOpt.get().getDenominacion());
+
+        Optional<Articulo> articuloOpt = service.buscarArticuloPorCodigo("LEN-T14");
+        assertTrue(articuloOpt.isPresent(), "Debe encontrar el artículo por código");
+        assertEquals("Notebook Lenovo ThinkPad T14 Gen 4", articuloOpt.get().getDenominacion());
+
+        // 2. Consultas con Joins y relaciones
+        List<FacturaVenta> facturasCliente = service.buscarFacturasPorClienteCuit("30-71234567-9");
+        assertFalse(facturasCliente.isEmpty(), "Debe retornar facturas para el cliente");
+        assertEquals(1001L, facturasCliente.get(0).getNumero());
+
+        List<FacturaVentaDetalle> detalles = service.buscarDetallesPorNumeroFactura(1001L);
+        assertEquals(2, detalles.size(), "La factura 1001 debe tener 2 detalles");
+
+        // 3. Consultas de agregación y métricas
+        Double totalGeneral = service.calcularImporteTotalFacturadoGeneral();
+        assertNotNull(totalGeneral);
+        assertTrue(totalGeneral > 0, "El importe total facturado general debe ser mayor a 0");
+
+        Long facturasPV1 = service.contarFacturasPorPuntoVenta(1);
+        assertTrue(facturasPV1 >= 1, "Debe haber al menos 1 factura en el punto de venta 1");
+
+        em.close();
+    }
+}
