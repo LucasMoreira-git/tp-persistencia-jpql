@@ -131,8 +131,8 @@ class FacturaVentaPersistenceTest {
         EntityManager em = emf.createEntityManager();
         FacturacionService service = new FacturacionService(em);
 
-        // Poblar datos de prueba mediante el servicio
-        service.poblarDatosPruebaSiEsNecesario();
+        // Poblar datos de prueba mediante Main
+        Main.poblarDatosPruebaSiEsNecesario(em);
 
         // 1. Búsquedas por atributos únicos
         Optional<Usuario> usuarioOpt = service.buscarUsuarioPorNombreUsuario("admin");
